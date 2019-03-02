@@ -1273,7 +1273,7 @@ Update_History_Loop:
 					}
 
 					startAttributes := startEvent.WorkflowExecutionStartedEventAttributes
-					continueAsnewAttributes := &workflow.ContinueAsNewWorkflowExecutionDecisionAttributes{
+					continueAsNewAttributes := &workflow.ContinueAsNewWorkflowExecutionDecisionAttributes{
 						WorkflowType:                        startAttributes.WorkflowType,
 						TaskList:                            startAttributes.TaskList,
 						RetryPolicy:                         startAttributes.RetryPolicy,
@@ -1286,7 +1286,7 @@ Update_History_Loop:
 						CronSchedule:                        common.StringPtr(msBuilder.GetExecutionInfo().CronSchedule),
 					}
 
-					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsnewAttributes, eventStoreVersion); err != nil {
+					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsNewAttributes, eventStoreVersion); err != nil {
 						return nil, err
 					}
 				}
@@ -1345,7 +1345,7 @@ Update_History_Loop:
 					}
 
 					startAttributes := startEvent.WorkflowExecutionStartedEventAttributes
-					continueAsnewAttributes := &workflow.ContinueAsNewWorkflowExecutionDecisionAttributes{
+					continueAsNewAttributes := &workflow.ContinueAsNewWorkflowExecutionDecisionAttributes{
 						WorkflowType:                        startAttributes.WorkflowType,
 						TaskList:                            startAttributes.TaskList,
 						RetryPolicy:                         startAttributes.RetryPolicy,
@@ -1360,7 +1360,7 @@ Update_History_Loop:
 						CronSchedule:                        common.StringPtr(msBuilder.GetExecutionInfo().CronSchedule),
 					}
 
-					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsnewAttributes, eventStoreVersion); err != nil {
+					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsNewAttributes, eventStoreVersion); err != nil {
 						return nil, err
 					}
 				}
