@@ -848,7 +848,6 @@ func (b *historyBuilder) newStartChildWorkflowExecutionInitiatedEvent(decisionTa
 	attributes.DecisionTaskCompletedEventId = common.Int64Ptr(decisionTaskCompletedEventID)
 	attributes.WorkflowIdReusePolicy = startAttributes.WorkflowIdReusePolicy
 	attributes.RetryPolicy = startAttributes.RetryPolicy
-	attributes.CronSchedule = startAttributes.CronSchedule
 	historyEvent.StartChildWorkflowExecutionInitiatedEventAttributes = attributes
 
 	return historyEvent

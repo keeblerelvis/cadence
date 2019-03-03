@@ -282,11 +282,11 @@ func newAdminDomainCommands() []cli.Command {
 				},
 				cli.StringFlag{
 					Name:  FlagArchivalStatusWithAlias,
-					Usage: "Flag to set archival status, valid values are \"disabled\" and \"enabled\"",
+					Usage: "Flag to set archival status, valid values are: {never_enabled, disabled, enabled}",
 				},
 				cli.StringFlag{
 					Name:  FlagArchivalBucketNameWithAlias,
-					Usage: "Optionally specify bucket (cannot be changed after first time archival is enabled)",
+					Usage: "Optionally specify bucket (cannot be changed after first time status is set to disabled or enabled)",
 				},
 			},
 			Action: func(c *cli.Context) {
@@ -333,11 +333,11 @@ func newAdminDomainCommands() []cli.Command {
 				},
 				cli.StringFlag{
 					Name:  FlagArchivalStatusWithAlias,
-					Usage: "Flag to set archival status, valid values are \"disabled\" and \"enabled\"",
+					Usage: "Flag to set archival status, valid values are: {never_enabled, disabled, enabled}",
 				},
 				cli.StringFlag{
 					Name:  FlagArchivalBucketNameWithAlias,
-					Usage: "Optionally specify bucket (cannot be changed after first time archival is enabled)",
+					Usage: "Optionally specify bucket (cannot be changed after first time status is set to disabled or enabled)",
 				},
 			},
 			Action: func(c *cli.Context) {

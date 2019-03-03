@@ -176,5 +176,4 @@ const (
 	TagBlobKey                           = "blob-key"
 	TagBlobKeyPrefix                     = "blob-key-prefix"
 	TagFileBlobstoreMetadataPath         = "file-blobstore-metadata-path"
-	TagClusterArchivalStatus             = "cluster-archival-status"
 )

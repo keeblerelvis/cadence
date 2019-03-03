@@ -21,9 +21,7 @@
 package cluster
 
 import (
-	"github.com/uber-common/bark"
 	"github.com/uber/cadence/common"
-	"github.com/uber/cadence/common/metrics/mocks"
 	"github.com/uber/cadence/common/service/config"
 	"github.com/uber/cadence/common/service/dynamicconfig"
 )
@@ -80,29 +78,27 @@ func GetTestClusterMetadata(enableGlobalDomain bool, isMasterCluster bool) Metad
 
 	if enableGlobalDomain {
 		return NewMetadata(
-			bark.NewNopLogger(),
-			&mocks.Client{},
 			dynamicconfig.GetBoolPropertyFn(true),
 			TestFailoverVersionIncrement,
 			masterClusterName,
 			TestCurrentClusterName,
 			TestAllClusterFailoverVersions,
 			TestAllClusterAddress,
-			dynamicconfig.GetStringPropertyFn("disabled"),
+			map[string]struct{}{},
+			dynamicconfig.GetBoolPropertyFn(false),
 			"",
 		)
 	}
 
 	return NewMetadata(
-		bark.NewNopLogger(),
-		&mocks.Client{},
 		dynamicconfig.GetBoolPropertyFn(false),
 		TestFailoverVersionIncrement,
 		TestCurrentClusterName,
 		TestCurrentClusterName,
 		TestSingleDCAllClusterFailoverVersions,
 		TestSingleDCAllClusterAddress,
-		dynamicconfig.GetStringPropertyFn("disabled"),
+		map[string]struct{}{},
+		dynamicconfig.GetBoolPropertyFn(false),
 		"",
 	)
 }

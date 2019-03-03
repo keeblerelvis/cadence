@@ -22,7 +22,6 @@ package mocks
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	"github.com/uber/cadence/common/cluster"
 	"github.com/uber/cadence/common/service/config"
 )
 
@@ -173,15 +172,43 @@ func (_m *ClusterMetadata) GetAllClientAddress() map[string]config.Address {
 	return r0
 }
 
-// ArchivalConfig provides a mock function with given fields:
-func (_m *ClusterMetadata) ArchivalConfig() *cluster.ArchivalConfig {
+// GetAllClientAddress provides a mock function with given fields:
+func (_m *ClusterMetadata) IsClusterDisabled(_a0 string) bool {
+	ret := _m.Called(_a0)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// IsArchivalEnabled provides a mock function with given fields:
+func (_m *ClusterMetadata) IsArchivalEnabled() bool {
 	ret := _m.Called()
 
-	var r0 *cluster.ArchivalConfig
-	if rf, ok := ret.Get(0).(func() *cluster.ArchivalConfig); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(*cluster.ArchivalConfig)
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// GetDefaultArchivalBucket provides a mock function with given fields:
+func (_m *ClusterMetadata) GetDefaultArchivalBucket() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

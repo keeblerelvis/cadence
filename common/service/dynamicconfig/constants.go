@@ -54,7 +54,7 @@ var keys = map[Key]string{
 	EnableReadFromClosedExecutionV2: "system.enableReadFromClosedExecutionV2",
 	EnableVisibilityToKafka:         "system.enableVisibilityToKafka",
 	EnableReadVisibilityFromES:      "system.enableReadVisibilityFromES",
-	ArchivalStatus:                  "system.archivalStatus",
+	EnableArchival:                  "system.enableArchival",
 
 	// size limit
 	BlobSizeLimitError:     "limit.blobSize.error",
@@ -90,6 +90,8 @@ var keys = map[Key]string{
 	MatchingMaxTaskBatchSize:                "matching.maxTaskBatchSize",
 
 	// history settings
+	// TODO remove after DC migration is over
+	EnableDCMigration:                                     "history.enableDCMigration",
 	HistoryRPS:                                            "history.rps",
 	HistoryPersistenceMaxQPS:                              "history.persistenceMaxQPS",
 	HistoryVisibilityOpenMaxQPS:                           "history.historyVisibilityOpenMaxQPS",
@@ -156,6 +158,7 @@ var keys = map[Key]string{
 	NumArchiveSystemWorkflows:                             "history.numArchiveSystemWorkflows",
 	EmitShardDiffLog:                                      "history.emitShardDiffLog",
 
+	WorkerReplicatorDCMigrationRetryCount:    "worker.replicatorDCMigrationRetryCount",
 	WorkerPersistenceMaxQPS:                  "worker.persistenceMaxQPS",
 	WorkerReplicatorConcurrency:              "worker.replicatorConcurrency",
 	WorkerReplicatorActivityBufferRetryCount: "worker.replicatorActivityBufferRetryCount",
@@ -202,8 +205,8 @@ const (
 	EnableReadVisibilityFromES
 	// DisableListVisibilityByFilter is config to disable list open/close workflow using filter
 	DisableListVisibilityByFilter
-	// ArchivalStatus is key for the status of archival
-	ArchivalStatus
+	// EnableArchival is key for enable archival
+	EnableArchival
 
 	// BlobSizeLimitError is the per event blob size limit
 	BlobSizeLimitError
@@ -268,6 +271,9 @@ const (
 
 	// key for history
 
+	// EnableDCMigration whether DC migration is enabled or not
+	// TODO remove after DC migration is over
+	EnableDCMigration
 	// HistoryRPS is request rate per second for each history host
 	HistoryRPS
 	// HistoryPersistenceMaxQPS is the max qps history host can query DB
@@ -401,6 +407,8 @@ const (
 
 	// key for worker
 
+	// WorkerReplicatorDCMigrationRetryCount is the retry attempt when doing dc migration
+	WorkerReplicatorDCMigrationRetryCount
 	// WorkerPersistenceMaxQPS is the max qps worker host can query DB
 	WorkerPersistenceMaxQPS
 	// WorkerReplicatorConcurrency is the max concurrent tasks to be processed at any given time

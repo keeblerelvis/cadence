@@ -22,7 +22,6 @@ package history
 
 import (
 	"errors"
-	"github.com/uber/cadence/common/cluster"
 	"github.com/uber/cadence/service/worker/sysworkflow"
 	"math"
 	"sync"
@@ -256,6 +255,12 @@ func (t *timerQueueProcessorBase) notifyNewTimers(timerTasks []persistence.Task)
 				t.metricsClient.IncCounter(metrics.TimerActiveTaskDeleteHistoryEventScope, metrics.NewTimerCounter)
 			} else {
 				t.metricsClient.IncCounter(metrics.TimerStandbyTaskDeleteHistoryEventScope, metrics.NewTimerCounter)
+			}
+		case persistence.TaskTypeArchiveHistoryEvent:
+			if isActive {
+				t.metricsClient.IncCounter(metrics.TimerActiveTaskArchiveHistoryEventScope, metrics.NewTimerCounter)
+			} else {
+				t.metricsClient.IncCounter(metrics.TimerStandbyTaskArchiveHistoryEventScope, metrics.NewTimerCounter)
 			}
 		case persistence.TaskTypeActivityRetryTimer:
 			if isActive {
@@ -585,37 +590,7 @@ func (t *timerQueueProcessorBase) processDeleteHistoryEvent(task *persistence.Ti
 		return nil
 	}
 
-	clusterArchivalStatus := t.shard.GetService().GetClusterMetadata().ArchivalConfig().GetArchivalStatus()
-	domainCacheEntry, err := t.historyService.getActiveDomainEntry(common.StringPtr(task.DomainID))
-	if err != nil {
-		return err
-	}
-	domainArchivalStatus := domainCacheEntry.GetConfig().ArchivalStatus
-
-	switch clusterArchivalStatus {
-	case cluster.ArchivalDisabled:
-		t.metricsClient.IncCounter(metrics.HistoryProcessDeleteHistoryEventScope, metrics.WorkflowCleanupDeleteCount)
-		return t.deleteWorkflow(task, msBuilder)
-	case cluster.ArchivalPaused:
-		if domainArchivalStatus == workflow.ArchivalStatusDisabled {
-			t.metricsClient.IncCounter(metrics.HistoryProcessDeleteHistoryEventScope, metrics.WorkflowCleanupDeleteCount)
-			return t.deleteWorkflow(task, msBuilder)
-		}
-		// if cluster archival is paused and domain enables archival do nothing, backfill worklow will handle this
-		t.metricsClient.IncCounter(metrics.HistoryProcessDeleteHistoryEventScope, metrics.WorkflowCleanupNopCount)
-	case cluster.ArchivalEnabled:
-		if domainArchivalStatus == workflow.ArchivalStatusDisabled {
-			t.metricsClient.IncCounter(metrics.HistoryProcessDeleteHistoryEventScope, metrics.WorkflowCleanupDeleteCount)
-			return t.deleteWorkflow(task, msBuilder)
-		}
-		t.metricsClient.IncCounter(metrics.HistoryProcessDeleteHistoryEventScope, metrics.WorkflowCleanupArchiveCount)
-		return t.archiveWorkflow(task, msBuilder, context)
-	}
-	return nil
-}
-
-func (t *timerQueueProcessorBase) deleteWorkflow(task *persistence.TimerTaskInfo, msBuilder mutableState) error {
-	err := t.deleteWorkflowExecution(task)
+	err = t.deleteWorkflowExecution(task)
 	if err != nil {
 		return err
 	}
@@ -628,7 +603,26 @@ func (t *timerQueueProcessorBase) deleteWorkflow(task *persistence.TimerTaskInfo
 	return t.deleteWorkflowVisibility(task)
 }
 
-func (t *timerQueueProcessorBase) archiveWorkflow(task *persistence.TimerTaskInfo, msBuilder mutableState, context workflowExecutionContext) error {
+func (t *timerQueueProcessorBase) processArchiveHistoryEvent(task *persistence.TimerTaskInfo) (retError error) {
+
+	context, release, err := t.cache.getOrCreateWorkflowExecution(t.getDomainIDAndWorkflowExecution(task))
+	if err != nil {
+		return err
+	}
+	defer func() { release(retError) }()
+
+	msBuilder, err := loadMutableStateForTimerTask(context, task, t.metricsClient, t.logger)
+	if err != nil {
+		return err
+	} else if msBuilder == nil || msBuilder.IsWorkflowExecutionRunning() {
+		return nil
+	}
+	ok, err := verifyTaskVersion(t.shard, t.logger, task.DomainID, msBuilder.GetLastWriteVersion(), task.Version, task)
+	if err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
 	req := &sysworkflow.ArchiveRequest{
 		DomainID:             task.DomainID,
 		WorkflowID:           task.WorkflowID,
@@ -638,8 +632,13 @@ func (t *timerQueueProcessorBase) archiveWorkflow(task *persistence.TimerTaskInf
 		NextEventID:          msBuilder.GetNextEventID(),
 		CloseFailoverVersion: msBuilder.GetLastWriteVersion(),
 	}
-
-	// send signal before deleting mutable state to make sure archival is idempotent
+	err = t.deleteWorkflowExecution(task)
+	if err != nil {
+		return err
+	}
+	// calling clear here to force accesses of mutable state to read database
+	// if this is not called then callers will get mutable state even though its been removed from database
+	context.clear()
 	if err := t.historyService.archivalClient.Archive(req); err != nil {
 		t.logger.WithFields(bark.Fields{
 			logging.TagHistoryShardID:      t.shard.GetShardID(),
@@ -652,13 +651,6 @@ func (t *timerQueueProcessorBase) archiveWorkflow(task *persistence.TimerTaskInf
 		}).Error("failed to initiate archival")
 		return err
 	}
-	err := t.deleteWorkflowExecution(task)
-	if err != nil {
-		return err
-	}
-	// calling clear here to force accesses of mutable state to read database
-	// if this is not called then callers will get mutable state even though its been removed from database
-	context.clear()
 	return nil
 }
 
@@ -733,6 +725,8 @@ func (t *timerQueueProcessorBase) getTimerTaskType(taskType int) string {
 		return "WorkflowTimeout"
 	case persistence.TaskTypeDeleteHistoryEvent:
 		return "DeleteHistoryEvent"
+	case persistence.TaskTypeArchiveHistoryEvent:
+		return "ArchiveHistoryEvent"
 	case persistence.TaskTypeActivityRetryTimer:
 		return "ActivityRetryTimerTask"
 	case persistence.TaskTypeWorkflowBackoffTimer:

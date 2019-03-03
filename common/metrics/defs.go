@@ -170,16 +170,10 @@ const (
 	PersistenceGetTasksScope
 	// PersistenceCompleteTaskScope tracks CompleteTask calls made by service to persistence layer
 	PersistenceCompleteTaskScope
-	// PersistenceCompleteTasksLessThanScope is the metric scope for persistence.TaskManager.PersistenceCompleteTasksLessThan API
-	PersistenceCompleteTasksLessThanScope
 	// PersistenceLeaseTaskListScope tracks LeaseTaskList calls made by service to persistence layer
 	PersistenceLeaseTaskListScope
 	// PersistenceUpdateTaskListScope tracks PersistenceUpdateTaskListScope calls made by service to persistence layer
 	PersistenceUpdateTaskListScope
-	// PersistenceListTaskListScope is the metric scope for persistence.TaskManager.ListTaskList API
-	PersistenceListTaskListScope
-	// PersistenceDeleteTaskListScope is the metric scope for persistence.TaskManager.DeleteTaskList API
-	PersistenceDeleteTaskListScope
 	// PersistenceAppendHistoryEventsScope tracks AppendHistoryEvents calls made by service to persistence layer
 	PersistenceAppendHistoryEventsScope
 	// PersistenceGetWorkflowExecutionHistoryScope tracks GetWorkflowExecutionHistory calls made by service to persistence layer
@@ -455,9 +449,6 @@ const (
 	// BlobstoreClientBucketMetadataScope tracks BucketMetadata calls to blobstore
 	BlobstoreClientBucketMetadataScope
 
-	// ClusterMetadataArchivalConfigScope tracks ArchivalConfig calls to ClusterMetadata
-	ClusterMetadataArchivalConfigScope
-
 	// ElasticsearchRecordWorkflowExecutionStartedScope tracks RecordWorkflowExecutionStarted calls made by service to persistence layer
 	ElasticsearchRecordWorkflowExecutionStartedScope
 	// ElasticsearchRecordWorkflowExecutionClosedScope tracks RecordWorkflowExecutionClosed calls made by service to persistence layer
@@ -664,6 +655,8 @@ const (
 	TimerActiveTaskWorkflowBackoffTimerScope
 	// TimerActiveTaskDeleteHistoryEventScope is the scope used by metric emitted by timer queue processor for processing history event cleanup
 	TimerActiveTaskDeleteHistoryEventScope
+	// TimerActiveTaskArchiveHistoryEventScope is the scope used by metric emitted by timer queue processor for processing history archival event
+	TimerActiveTaskArchiveHistoryEventScope
 	// TimerStandbyTaskActivityTimeoutScope is the scope used by metric emitted by timer queue processor for processing activity timeouts
 	TimerStandbyTaskActivityTimeoutScope
 	// TimerStandbyTaskDecisionTimeoutScope is the scope used by metric emitted by timer queue processor for processing decision timeouts
@@ -676,6 +669,8 @@ const (
 	TimerStandbyTaskActivityRetryTimerScope
 	// TimerStandbyTaskDeleteHistoryEventScope is the scope used by metric emitted by timer queue processor for processing history event cleanup
 	TimerStandbyTaskDeleteHistoryEventScope
+	// TimerStandbyTaskArchiveHistoryEventScope is the scope used by metric emitted by timer queue processor for processing history archival event
+	TimerStandbyTaskArchiveHistoryEventScope
 	// TimerStandbyTaskWorkflowBackoffTimerScope is the scope used by metric emitted by timer queue processor for processing retry task.
 	TimerStandbyTaskWorkflowBackoffTimerScope
 	// HistoryEventNotificationScope is the scope used by shard history event nitification
@@ -716,8 +711,6 @@ const (
 	SessionCountStatsScope
 	// HistoryResetWorkflowExecutionScope tracks ResetWorkflowExecution API calls received by service
 	HistoryResetWorkflowExecutionScope
-	// HistoryProcessDeleteHistoryEventScope tracks ProcessDeleteHistoryEvent processing calls
-	HistoryProcessDeleteHistoryEventScope
 
 	NumHistoryScopes
 )
@@ -799,11 +792,8 @@ var ScopeDefs = map[ServiceIdx]map[int]scopeDefinition{
 		PersistenceCreateTaskScope:                               {operation: "CreateTask", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceGetTasksScope:                                 {operation: "GetTasks", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceCompleteTaskScope:                             {operation: "CompleteTask", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
-		PersistenceCompleteTasksLessThanScope:                    {operation: "CompleteTasksLessThan", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceLeaseTaskListScope:                            {operation: "LeaseTaskList", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceUpdateTaskListScope:                           {operation: "UpdateTaskList", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
-		PersistenceListTaskListScope:                             {operation: "ListTaskList", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
-		PersistenceDeleteTaskListScope:                           {operation: "DeleteTaskList", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceAppendHistoryEventsScope:                      {operation: "AppendHistoryEvents", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceGetWorkflowExecutionHistoryScope:              {operation: "GetWorkflowExecutionHistory", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
 		PersistenceDeleteWorkflowExecutionHistoryScope:           {operation: "DeleteWorkflowExecutionHistory", tags: map[string]string{ShardTagName: NoneShardsTagValue}},
@@ -837,8 +827,6 @@ var ScopeDefs = map[ServiceIdx]map[int]scopeDefinition{
 		BlobstoreClientDeleteScope:         {operation: "Delete", tags: map[string]string{CadenceRoleTagName: BlobstoreRoleTagValue}},
 		BlobstoreClientListByPrefixScope:   {operation: "ListByPrefix", tags: map[string]string{CadenceRoleTagName: BlobstoreRoleTagValue}},
 		BlobstoreClientBucketMetadataScope: {operation: "BucketMetadata", tags: map[string]string{CadenceRoleTagName: BlobstoreRoleTagValue}},
-
-		ClusterMetadataArchivalConfigScope: {operation: "ArchivalConfig"},
 
 		HistoryClientStartWorkflowExecutionScope:            {operation: "HistoryClientStartWorkflowExecution", tags: map[string]string{CadenceRoleTagName: HistoryRoleTagValue}},
 		HistoryClientRecordActivityTaskHeartbeatScope:       {operation: "HistoryClientRecordActivityTaskHeartbeat", tags: map[string]string{CadenceRoleTagName: HistoryRoleTagValue}},
@@ -1015,7 +1003,6 @@ var ScopeDefs = map[ServiceIdx]map[int]scopeDefinition{
 		HistoryRemoveSignalMutableStateScope:         {operation: "RemoveSignalMutableState"},
 		HistoryTerminateWorkflowExecutionScope:       {operation: "TerminateWorkflowExecution"},
 		HistoryResetWorkflowExecutionScope:           {operation: "ResetWorkflowExecution"},
-		HistoryProcessDeleteHistoryEventScope:        {operation: "ProcessDeleteHistoryEvent"},
 		HistoryScheduleDecisionTaskScope:             {operation: "ScheduleDecisionTask"},
 		HistoryRecordChildExecutionCompletedScope:    {operation: "RecordChildExecutionCompleted"},
 		HistoryRequestCancelWorkflowExecutionScope:   {operation: "RequestCancelWorkflowExecution"},
@@ -1050,6 +1037,7 @@ var ScopeDefs = map[ServiceIdx]map[int]scopeDefinition{
 		TimerActiveTaskActivityRetryTimerScope:       {operation: "TimerActiveTaskActivityRetryTimer"},
 		TimerActiveTaskWorkflowBackoffTimerScope:     {operation: "TimerActiveTaskWorkflowBackoffTimer"},
 		TimerActiveTaskDeleteHistoryEventScope:       {operation: "TimerActiveTaskDeleteHistoryEvent"},
+		TimerActiveTaskArchiveHistoryEventScope:      {operation: "TimerActiveTaskArchiveHistoryEvent"},
 		TimerStandbyTaskActivityTimeoutScope:         {operation: "TimerStandbyTaskActivityTimeout"},
 		TimerStandbyTaskDecisionTimeoutScope:         {operation: "TimerStandbyTaskDecisionTimeout"},
 		TimerStandbyTaskUserTimerScope:               {operation: "TimerStandbyTaskUserTimer"},
@@ -1057,6 +1045,7 @@ var ScopeDefs = map[ServiceIdx]map[int]scopeDefinition{
 		TimerStandbyTaskActivityRetryTimerScope:      {operation: "TimerStandbyTaskActivityRetryTimer"},
 		TimerStandbyTaskWorkflowBackoffTimerScope:    {operation: "TimerStandbyTaskWorkflowBackoffTimer"},
 		TimerStandbyTaskDeleteHistoryEventScope:      {operation: "TimerStandbyTaskDeleteHistoryEvent"},
+		TimerStandbyTaskArchiveHistoryEventScope:     {operation: "TimerStandbyTaskArchiveHistoryEvent"},
 		HistoryEventNotificationScope:                {operation: "HistoryEventNotification"},
 		ReplicatorQueueProcessorScope:                {operation: "ReplicatorQueueProcessor"},
 		ReplicatorTaskHistoryScope:                   {operation: "ReplicatorTaskHistory"},
@@ -1146,8 +1135,6 @@ const (
 	HistorySize
 	HistoryCount
 	EventBlobSize
-
-	ArchivalConfigFailures
 
 	ElasticsearchRequests
 	ElasticsearchFailures
@@ -1264,9 +1251,6 @@ const (
 	DeleteRequestCancelInfoCount
 	WorkflowRetryBackoffTimerCount
 	WorkflowCronBackoffTimerCount
-	WorkflowCleanupDeleteCount
-	WorkflowCleanupArchiveCount
-	WorkflowCleanupNopCount
 
 	NumHistoryMetrics
 )
@@ -1361,7 +1345,6 @@ var MetricDefs = map[ServiceIdx]map[int]metricDefinition{
 		HistorySize:                                         {metricName: "history-size", metricType: Timer},
 		HistoryCount:                                        {metricName: "history-count", metricType: Timer},
 		EventBlobSize:                                       {metricName: "event-blob-size", metricType: Timer},
-		ArchivalConfigFailures:                              {metricName: "archivalconfig.failures", metricType: Counter},
 		ElasticsearchRequests:                               {metricName: "elasticsearch.requests", metricType: Counter},
 		ElasticsearchFailures:                               {metricName: "elasticsearch.errors", metricType: Counter},
 		ElasticsearchLatency:                                {metricName: "elasticsearch.latency", metricType: Timer},
@@ -1473,9 +1456,6 @@ var MetricDefs = map[ServiceIdx]map[int]metricDefinition{
 		DeleteRequestCancelInfoCount:                 {metricName: "delete-request-cancel-info", metricType: Timer},
 		WorkflowRetryBackoffTimerCount:               {metricName: "workflow-retry-backoff-timer", metricType: Counter},
 		WorkflowCronBackoffTimerCount:                {metricName: "workflow-cron-backoff-timer", metricType: Counter},
-		WorkflowCleanupDeleteCount:                   {metricName: "workflow-cleanup-delete", metricType: Counter},
-		WorkflowCleanupArchiveCount:                  {metricName: "workflow-cleanup-archive", metricType: Counter},
-		WorkflowCleanupNopCount:                      {metricName: "workflow-cleanup-nop", metricType: Counter},
 	},
 	Matching: {
 		PollSuccessCounter:            {metricName: "poll.success"},

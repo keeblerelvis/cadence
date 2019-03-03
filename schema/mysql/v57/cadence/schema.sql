@@ -153,6 +153,7 @@ CREATE TABLE buffered_events (
 CREATE INDEX buffered_events_by_events_ids ON buffered_events(shard_id, domain_id, workflow_id, run_id);
 
 CREATE TABLE tasks (
+  shard_id INT NOT NULL DEFAULT 0,
   domain_id BINARY(16) NOT NULL,
   workflow_id VARCHAR(255) NOT NULL,
   run_id BINARY(16) NOT NULL,
@@ -161,11 +162,10 @@ CREATE TABLE tasks (
   task_type TINYINT NOT NULL, -- {Activity, Decision}
   task_id BIGINT NOT NULL,
   expiry_ts DATETIME(6) NOT NULL,
-  PRIMARY KEY (domain_id, task_list_name, task_type, task_id)
+  PRIMARY KEY (shard_id, domain_id, task_list_name, task_type, task_id)
 );
 
 CREATE TABLE task_lists (
-  shard_id INT NOT NULL,
 	domain_id BINARY(16) NOT NULL,
 	range_id BIGINT NOT NULL,
 	name VARCHAR(255) NOT NULL,
@@ -173,8 +173,7 @@ CREATE TABLE task_lists (
 	ack_level BIGINT NOT NULL DEFAULT 0,
 	kind TINYINT NOT NULL, -- {Normal, Sticky}
 	expiry_ts DATETIME(6) NOT NULL,
-	last_updated DATETIME(6) NOT NULL,
-	PRIMARY KEY (shard_id, domain_id, name, task_type)
+	PRIMARY KEY (domain_id, name, task_type)
 );
 
 CREATE TABLE replication_tasks (

@@ -22,10 +22,11 @@ package worker
 
 import (
 	"context"
-	"github.com/uber/cadence/client/public"
-	"github.com/uber/cadence/common/blobstore"
 	"sync/atomic"
 	"time"
+
+	"github.com/uber/cadence/client/public"
+	"github.com/uber/cadence/common/blobstore"
 
 	"github.com/uber/cadence/common/cache"
 
@@ -82,6 +83,10 @@ func NewService(params *service.BootstrapParams) common.Daemon {
 func NewConfig(dc *dynamicconfig.Collection) *Config {
 	return &Config{
 		ReplicationCfg: &replicator.Config{
+			// TODO remove after DC migration is over
+			EnableDCMigration:                dc.GetBoolProperty(dynamicconfig.EnableDCMigration, false),
+			ReplicatorDCMigrrationRetryCount: dc.GetIntProperty(dynamicconfig.WorkerReplicatorDCMigrationRetryCount, 2),
+
 			PersistenceMaxQPS:                  dc.GetIntProperty(dynamicconfig.WorkerPersistenceMaxQPS, 500),
 			ReplicatorConcurrency:              dc.GetIntProperty(dynamicconfig.WorkerReplicatorConcurrency, 1000),
 			ReplicatorActivityBufferRetryCount: dc.GetIntProperty(dynamicconfig.WorkerReplicatorActivityBufferRetryCount, 8),
@@ -118,7 +123,7 @@ func (s *Service) Start() {
 	if base.GetClusterMetadata().IsGlobalDomainEnabled() {
 		s.startReplicator(base, pFactory)
 	}
-	if base.GetClusterMetadata().ArchivalConfig().ConfiguredForArchival() {
+	if base.GetClusterMetadata().IsArchivalEnabled() {
 		s.startSysWorker(base, pFactory)
 	}
 	if s.params.ESConfig.Enable {

@@ -370,13 +370,6 @@ func (p *taskRateLimitedPersistenceClient) CompleteTask(request *CompleteTaskReq
 	return err
 }
 
-func (p *taskRateLimitedPersistenceClient) CompleteTasksLessThan(request *CompleteTasksLessThanRequest) (int, error) {
-	if ok, _ := p.rateLimiter.TryConsume(1); !ok {
-		return 0, ErrPersistenceLimitExceeded
-	}
-	return p.persistence.CompleteTasksLessThan(request)
-}
-
 func (p *taskRateLimitedPersistenceClient) LeaseTaskList(request *LeaseTaskListRequest) (*LeaseTaskListResponse, error) {
 	if ok, _ := p.rateLimiter.TryConsume(1); !ok {
 		return nil, ErrPersistenceLimitExceeded
@@ -393,20 +386,6 @@ func (p *taskRateLimitedPersistenceClient) UpdateTaskList(request *UpdateTaskLis
 
 	response, err := p.persistence.UpdateTaskList(request)
 	return response, err
-}
-
-func (p *taskRateLimitedPersistenceClient) ListTaskList(request *ListTaskListRequest) (*ListTaskListResponse, error) {
-	if ok, _ := p.rateLimiter.TryConsume(1); !ok {
-		return nil, ErrPersistenceLimitExceeded
-	}
-	return p.persistence.ListTaskList(request)
-}
-
-func (p *taskRateLimitedPersistenceClient) DeleteTaskList(request *DeleteTaskListRequest) error {
-	if ok, _ := p.rateLimiter.TryConsume(1); !ok {
-		return ErrPersistenceLimitExceeded
-	}
-	return p.persistence.DeleteTaskList(request)
 }
 
 func (p *taskRateLimitedPersistenceClient) Close() {

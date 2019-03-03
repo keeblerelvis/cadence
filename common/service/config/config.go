@@ -22,9 +22,8 @@ package config
 
 import (
 	"encoding/json"
-	"time"
-
 	"github.com/uber/cadence/common/blobstore/filestore"
+	"time"
 
 	"github.com/uber-go/tally/m3"
 	"github.com/uber/cadence/common/elasticsearch"
@@ -184,9 +183,6 @@ type (
 		MaxQPS int `yaml:"maxQPS"`
 		// MaxConns the max number of connections to this datastore
 		MaxConns int `yaml:"maxConns"`
-		// NumShards is the number of storage shards to use for tables
-		// in a sharded sql database. The default value for this param is 1
-		NumShards int `yaml:"nShards"`
 	}
 
 	// Replicator describes the configuration of replicator
@@ -218,6 +214,9 @@ type (
 		ClusterInitialFailoverVersions map[string]int64 `yaml:"clusterInitialFailoverVersion"`
 		// ClusterAddress contains all cluster names to corresponding address
 		ClusterAddress map[string]Address `yaml:"clusterAddress"`
+		// ClusterDisabled contains the clusters not to be enabled
+		// TODO remove after DC migration is over
+		ClustersDisabled []string `yaml:"clustersDisabled"`
 	}
 
 	// Address indicate the remote cluster's service name and address
@@ -262,8 +261,8 @@ type (
 
 	// Archival contains the config for archival
 	Archival struct {
-		// Status is the status of archival either: enabled, disabled, or paused
-		Status string `yaml:"status"`
+		// Enabled whether archival is enabled
+		Enabled bool `yaml:"enabled"`
 		// Filestore the configuration for file based blobstore
 		Filestore filestore.Config `yaml:"filestore"`
 	}

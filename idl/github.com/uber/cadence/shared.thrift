@@ -243,6 +243,7 @@ enum TaskListKind {
 }
 
 enum ArchivalStatus {
+  NEVER_ENABLED,
   DISABLED,
   ENABLED,
 }

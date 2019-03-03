@@ -143,7 +143,7 @@ func (m *MetadataPersistenceSuite) TestCreateDomain() {
 			Retention:      100,
 			EmitMetric:     false,
 			ArchivalBucket: "",
-			ArchivalStatus: gen.ArchivalStatusDisabled,
+			ArchivalStatus: gen.ArchivalStatusNeverEnabled,
 		},
 		&p.DomainReplicationConfig{},
 		isGlobalDomain,
