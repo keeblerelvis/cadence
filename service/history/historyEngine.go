@@ -410,8 +410,13 @@ func (e *historyEngineImpl) createWorkflow(startRequest *h.StartWorkflowExecutio
 		initiatedID = *parentInfo.InitiatedId
 	}
 
+	createTaskID, err := e.shard.GetNextTransferTaskID()
+	if err != nil {
+		return err
+	}
 	createRequest := &persistence.CreateWorkflowExecutionRequest{
 		RequestID:                   common.StringDefault(request.RequestId),
+		TaskID:                      createTaskID,
 		DomainID:                    currExeInfo.DomainID,
 		Execution:                   execution,
 		ParentDomainID:              parentDomainID,
@@ -681,6 +686,7 @@ func (e *historyEngineImpl) getMutableState(ctx context.Context,
 		StickyTaskListScheduleToStartTimeout: common.Int32Ptr(executionInfo.StickyScheduleToStartTimeout),
 		EventStoreVersion:                    common.Int32Ptr(msBuilder.GetEventStoreVersion()),
 		BranchToken:                          msBuilder.GetCurrentBranch(),
+		CreateTaskId:                         common.Int64Ptr(msBuilder.GetExecutionInfo().CreateTaskID),
 	}
 
 	replicationState := msBuilder.GetReplicationState()
@@ -1287,7 +1293,13 @@ Update_History_Loop:
 						CronSchedule:                        common.StringPtr(msBuilder.GetExecutionInfo().CronSchedule),
 					}
 
-					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsnewAttributes, eventStoreVersion); err != nil {
+					createTaskID, err := e.shard.GetNextTransferTaskID()
+					if err != nil {
+						return nil, err
+					}
+					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry,
+						startAttributes.GetParentWorkflowDomain(), continueAsnewAttributes, eventStoreVersion,
+						createTaskID); err != nil {
 						return nil, err
 					}
 				}
@@ -1361,7 +1373,13 @@ Update_History_Loop:
 						CronSchedule:                        common.StringPtr(msBuilder.GetExecutionInfo().CronSchedule),
 					}
 
-					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry, startAttributes.GetParentWorkflowDomain(), continueAsnewAttributes, eventStoreVersion); err != nil {
+					createTaskID, err := e.shard.GetNextTransferTaskID()
+					if err != nil {
+						return nil, err
+					}
+					if _, continueAsNewBuilder, err = msBuilder.AddContinueAsNewEvent(completedID, domainEntry,
+						startAttributes.GetParentWorkflowDomain(),
+						continueAsnewAttributes, eventStoreVersion, createTaskID); err != nil {
 						return nil, err
 					}
 				}
@@ -1604,7 +1622,12 @@ Update_History_Loop:
 					parentDomainName = parentDomainEntry.GetInfo().Name
 				}
 
-				_, newStateBuilder, err := msBuilder.AddContinueAsNewEvent(completedID, domainEntry, parentDomainName, attributes, eventStoreVersion)
+				createTaskID, err := e.shard.GetNextTransferTaskID()
+				if err != nil {
+					return nil, err
+				}
+				_, newStateBuilder, err := msBuilder.AddContinueAsNewEvent(completedID, domainEntry,
+					parentDomainName, attributes, eventStoreVersion, createTaskID)
 				if err != nil {
 					return nil, err
 				}
